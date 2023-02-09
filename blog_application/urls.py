@@ -50,7 +50,7 @@ swagger_url = [
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('account/', include('accounts.urls')),
+    path('auth/', include('accounts.urls')),
     path('blog/', include('blog.urls')),
 ]+swagger_url
 

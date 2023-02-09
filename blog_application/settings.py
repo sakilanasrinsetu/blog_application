@@ -182,3 +182,7 @@ REST_KNOX = {
 }
 
 AUTH_USER_MODEL = 'accounts.UserAccount'
+
+REST_FRAMEWORK = {
+    'DATETIME_FORMAT': '%B %d, %Y', # returns February 9, 2023
+}
