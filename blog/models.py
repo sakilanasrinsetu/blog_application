@@ -39,7 +39,8 @@ class Comment(models.Model):
         Post, on_delete=models.CASCADE, related_name='comments'
     )
     commented_by = models.ForeignKey(
-        UserAccount, on_delete=models.CASCADE, related_name='comments'
+        UserAccount, on_delete=models.CASCADE, related_name='comments',
+        null=True, blank=True
     )
     comment = models.TextField(
         blank=True, null=True, verbose_name='comment'
@@ -60,10 +61,13 @@ class Comment(models.Model):
 
 class CommentReply(models.Model):
     post_comment = models.ForeignKey(
-        Comment, on_delete=models.CASCADE, related_name='comment_replays', verbose_name='post comment'
+        Comment, on_delete=models.CASCADE, related_name='comment_replays', verbose_name='post comment',
+        null = True, blank = True
     )
     replied_by = models.ForeignKey(
-        UserAccount, on_delete=models.CASCADE, related_name='comment_replays', verbose_name='replied by'
+        UserAccount, on_delete=models.CASCADE,
+        related_name='comment_replays', verbose_name='replied by',
+        null=True, blank=True
     )
     reply = models.TextField(
         blank=True, null=True, verbose_name='reply'

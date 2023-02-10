@@ -26,6 +26,7 @@ from django.contrib.auth.hashers import make_password
 
 class UserAccountViewSet(CustomViewSet):
     queryset = UserAccount.objects.all()
+    serializer_class = UserProfileDetailSerializer
     lookup_field = 'pk'
 
     def get_permissions(self):
@@ -121,6 +122,13 @@ class UserAccountViewSet(CustomViewSet):
                                    error_code=400)
 
         serializer = UserProfileDetailSerializer(instance=qs)
+        return ResponseWrapper(data=serializer.data, status=200)
 
+    def user_list(self, request, *args, **kwargs):
+        qs = UserAccount.objects.all()
+        if not qs:
+            return ResponseWrapper(error_msg='This is Not Your Account',
+                                   error_code=400)
 
+        serializer = UserProfileDetailSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, status=200)

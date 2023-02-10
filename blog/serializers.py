@@ -31,7 +31,7 @@ class PostDetailSerializer(serializers.ModelSerializer):
         return None
 
 
-class PostCreateSerializer(serializers.ModelSerializer):
+class PostSerializer(serializers.ModelSerializer):
     featured_image = Base64ImageField()
 
     class Meta:
@@ -43,3 +43,74 @@ class PostCreateSerializer(serializers.ModelSerializer):
         if featured_image:
             return Post.objects.create(featured_image=featured_image, **validated_data)
         return Post.objects.create(**validated_data)
+
+
+class CommentDetailsSerializer(serializers.ModelSerializer):
+    commented_by = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = [
+            'id',
+            'comment',
+            'commented_by',
+            'created_at',
+            'updated_at'
+        ]
+
+    def get_commented_by(self, obj):
+        if obj.commented_by:
+            serializer = UserProfileDetailSerializer(instance = obj.commented_by)
+            return serializer.data
+        return None
+
+
+class CommentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Comment
+        # fields = '__all__'
+        exclude = ['commented_by']
+
+
+class CommentUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Comment
+        # fields = '__all__'
+        exclude = ['commented_by', 'post']
+
+
+class CommentReplyDetailsSerializer(serializers.ModelSerializer):
+    replied_by = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = CommentReply
+        fields = [
+            'id',
+            'reply',
+            'post_comment',
+            'replied_by',
+            'created_at',
+            'updated_at'
+        ]
+
+    def get_replied_by(self, obj):
+        if obj.replied_by:
+            serializer = UserProfileDetailSerializer(instance=obj.replied_by)
+            return serializer.data
+        return None
+
+
+class CommentReplySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommentReply
+        # fields = '__all__'
+        exclude = ['replied_by']
+
+
+class CommentReplyUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommentReply
+        # fields = '__all__'
+        exclude = ['replied_by', 'post_comment']

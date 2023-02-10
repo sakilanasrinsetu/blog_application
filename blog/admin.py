@@ -4,11 +4,13 @@ from blog.models import Post, Comment, CommentReply
 
 # Register your models here.
 
+
 class PostAdmin(admin.ModelAdmin):
     list_display = ['id','title','created_by', 'created_at']
 
     class Meta:
         model = Post
+
 
 admin.site.register(Post, PostAdmin)
 
@@ -19,8 +21,8 @@ class CommentAdmin(admin.ModelAdmin):
     class Meta:
         model = Comment
 
-admin.site.register(Comment, CommentAdmin)
 
+admin.site.register(Comment, CommentAdmin)
 
 
 class CommentReplyAdmin(admin.ModelAdmin):
@@ -28,5 +30,6 @@ class CommentReplyAdmin(admin.ModelAdmin):
 
     class Meta:
         model = CommentReply
+
 
 admin.site.register(CommentReply, CommentReplyAdmin)

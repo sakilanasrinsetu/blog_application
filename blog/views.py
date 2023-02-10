@@ -32,16 +32,13 @@ class PostViewSet(CustomViewSet):
         permission_classes = []
         if self.action in ["create","update"]:
             permission_classes = [IsAuthenticated]
-        # else:
-        #     # permissions.DjangoObjectPermissions.has_permission()
-        #     permission_classes = [permissions.AllowAny]
         return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
         if self.action == 'create':
-            self.serializer_class = PostCreateSerializer
+            self.serializer_class = PostSerializer
         elif self.action == 'update':
-            self.serializer_class = PostCreateSerializer
+            self.serializer_class = PostSerializer
 
         return self.serializer_class
 
@@ -93,3 +90,141 @@ class PostViewSet(CustomViewSet):
             return ResponseWrapper(error_msg='Post not Found', error_code=400, status=400)
         serializer = self.serializer_class(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='Success', status=200)
+
+
+class CommentViewSet(CustomViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentDetailsSerializer
+    lookup_field = 'pk'
+
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ["create", "update"]:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            self.serializer_class = CommentSerializer
+        elif self.action == 'update':
+            self.serializer_class = CommentUpdateSerializer
+
+        return self.serializer_class
+
+    def create(self, request, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+
+        post = request.data.get('post')
+        if not post:
+            return ResponseWrapper(error_msg='Post ID is Required', error_code=400, status=400)
+
+        post_qs = Post.objects.filter(id = post).last()
+        if not post_qs:
+            return ResponseWrapper(error_msg='Post not Found', error_code=400, status=400)
+
+        if serializer.is_valid():
+            qs = serializer.save()
+            qs.commented_by = request.user
+            qs.save()
+            serializer = CommentDetailsSerializer(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def update(self, request, pk, **kwargs):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data, partial=True)
+
+        comment_qs = self.queryset.filter(**kwargs)
+        if not comment_qs.exists():
+            return ResponseWrapper(error_code=400,
+                                   error_msg='Comment Not Found', status=400)
+
+        if serializer.is_valid():
+            comment_qs = Comment.objects.filter(commented_by__username = request.user, id = pk).last()
+
+            if not comment_qs:
+                return ResponseWrapper(
+                    error_msg="You Have Not Enough Permission to Edit This",
+                    error_code=400,
+                    status=400,
+                )
+
+            qs = serializer.update(instance=self.get_object(
+            ), validated_data=serializer.validated_data)
+            serializer = CommentDetailsSerializer(qs)
+            return ResponseWrapper(data=serializer.data,
+                                   msg='Update Successfully', status=200)
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+
+class CommentReplyViewSet(CustomViewSet):
+    queryset = CommentReply.objects.all()
+    serializer_class = CommentReplyDetailsSerializer
+    lookup_field = 'pk'
+
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ["create", "update"]:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            self.serializer_class = CommentReplySerializer
+        elif self.action == 'update':
+            self.serializer_class = CommentReplyUpdateSerializer
+
+        return self.serializer_class
+
+    def create(self, request, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+
+        post_comment = request.data.get('post_comment')
+        if not post_comment:
+            return ResponseWrapper(error_msg='Comment ID is Required', error_code=400, status=400)
+
+        comment_qs = Comment.objects.filter(id = post_comment).last()
+        if not comment_qs:
+            return ResponseWrapper(error_msg='Comment not Found', error_code=400, status=400)
+
+        if serializer.is_valid():
+            qs = serializer.save()
+            qs.replied_by = request.user
+            qs.save()
+            serializer = CommentReplyDetailsSerializer(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def update(self, request, pk, **kwargs):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data, partial=True)
+
+        comment_qs = self.queryset.filter(**kwargs)
+        if not comment_qs.exists():
+            return ResponseWrapper(error_code=400,
+                                   error_msg='Comment Not Found', status=400)
+
+        if serializer.is_valid():
+            comment_qs = Comment.objects.filter(commented_by__username = request.user, id = pk).last()
+
+            if not comment_qs:
+                return ResponseWrapper(
+                    error_msg="You Have Not Enough Permission to Edit This",
+                    error_code=400,
+                    status=400,
+                )
+
+            qs = serializer.update(instance=self.get_object(
+            ), validated_data=serializer.validated_data)
+            serializer = CommentDetailsSerializer(qs)
+            return ResponseWrapper(data=serializer.data,
+                                   msg='Update Successfully', status=200)
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+
