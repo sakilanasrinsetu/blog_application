@@ -9,20 +9,29 @@ from django.utils.text import slugify
 class Post(models.Model):
     title = models.CharField(max_length=255, verbose_name="title")
     slug = models.SlugField(blank=True, unique=True)
-    featured_image = models.ImageField(
+    featured_image = models.FileField(
         blank=True, null=True, upload_to='post'
     )
     description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(
         auto_now_add=True, verbose_name='created at'
     )
-    created_by = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="posts")
+    created_by = models.ForeignKey(UserAccount, on_delete=models.CASCADE,
+                                   related_name="posts", null=True, blank=True)
     updated_at = models.DateTimeField(
         auto_now=True, verbose_name='updated at'
     )
 
     def __str__(self):
         return self.title
+
+    def generate_slug(self):
+        return slugify(self.title)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self.generate_slug()
+        super().save(*args, **kwargs)
 
 
 class Comment(models.Model):
