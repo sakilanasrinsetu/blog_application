@@ -24,6 +24,12 @@
 
     `python manage.py runserver`
 
+# Project Unit Test Run Command
+
+    `python manage.py test`
+    `python manage.py test blog`
+    `python manage.py test account`
+
 # Project API Url
 
     `http://127.0.0.1:8000`
