@@ -1,11 +1,5 @@
 from django.test import TestCase
-from django.contrib.auth.models import User
-from django.urls import path, reverse, include, resolve
-from rest_framework import status
 from rest_framework.test import APITestCase
-from .models import *
-
-from .serializers import UserProfileDetailSerializer
 from faker import Faker
 from rest_framework import status
 

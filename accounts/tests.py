@@ -13,15 +13,10 @@ from rest_framework import status
 # Create your tests here.
 
 class AccountTest(APITestCase):
+    fixtures = ['user.json']
+
     def test_register(self):
-        _data = {
-            "first_name": "A",
-            "last_name": "B",
-            "email":'setu@gmail.com',
-            "username":'aa',
-            "password": "1234",
-        }
-        _response = self.client.post('/auth/register/', data= _data, format="json")
+        _response = self.client.post('/auth/register/', format="json")
         _data = _response.json()
         print("Registration  Response : ",_data)
         self.assertEqual(_response.status_code, 200)
@@ -39,6 +34,7 @@ class AccountTest(APITestCase):
     def test_get_user(self):
         _response = self.client.get('/auth/user/', format="json")
         _data = _response.json()
+        print(_data)
         self.assertEqual(_response.status_code, 401)
 
     def test_post_profile_update(self):

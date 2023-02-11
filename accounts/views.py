@@ -37,9 +37,6 @@ class UserAccountViewSet(CustomViewSet):
             permission_classes = [IsAuthenticated]
         elif self.action in ["employee_create", 'user_list', 'destroy']:
             permission_classes = [IsEmployeeOrSuperAdmin]
-        # else:
-        #     # permissions.DjangoObjectPermissions.has_permission()
-        #     permission_classes = [permissions.AllowAny]
         return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
@@ -61,7 +58,7 @@ class UserAccountViewSet(CustomViewSet):
         return self.serializer_class
 
     def register(self, request, *args, **kwargs):
-        password = request.data.pop("password")
+        password = request.data.get("password")
         email = request.data.get("email")
         username = request.data.get("username")
 
@@ -72,6 +69,11 @@ class UserAccountViewSet(CustomViewSet):
         if not username:
             return ResponseWrapper(error_msg='Username is not Given',
                                    status=400, error_code=400)
+        if not password:
+            return ResponseWrapper(error_msg='Password is not Given',
+                                   status=400, error_code=400)
+
+        password = request.data.pop("password")
 
         email_exist = UserAccount.objects.filter(email=email).exists()
 
