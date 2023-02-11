@@ -11,9 +11,23 @@
     - Run the project with `runserver` command
     - Run the test with `test` command
 
+# Project ERD Diagram
+
+<img src="https://github.com/sakilanasrinsetu/blog_application/blob/main/blog_erd.png?raw=true" width =100% > 
+
+
+# Project requirement setup
+
+    `pip install -r requirements.txt`
+
+# Project Run Command
+
+    `python manage.py runserver`
+
 # Project API Url
 
     `http://127.0.0.1:8000`
+    `http://127.0.0.1:8000/redoc/`
 
 # For Dump Project Data 
 
