@@ -62,12 +62,16 @@ class UserAccountViewSet(CustomViewSet):
 
     def register(self, request, *args, **kwargs):
         password = request.data.pop("password")
-        email = request.data["email"]
-        username = request.data["username"]
+        email = request.data.get("email")
+        username = request.data.get("username")
 
-        first_name = request.data["first_name"]
-        last_name = request.data["last_name"]
+        first_name = request.data.get("first_name")
+        last_name = request.data.get("last_name")
         full_name = str(first_name) + ' ' + str(last_name)
+
+        if not username:
+            return ResponseWrapper(error_msg='Username is not Given',
+                                   status=400, error_code=400)
 
         email_exist = UserAccount.objects.filter(email=email).exists()
 

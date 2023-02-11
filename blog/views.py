@@ -19,7 +19,7 @@ import random
 from .serializers import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from utils.response_wrapper import ResponseWrapper
-
+from utils.permissions import *
 # Create your views here.
 
 
@@ -31,7 +31,7 @@ class PostViewSet(CustomViewSet):
     def get_permissions(self):
         permission_classes = []
         if self.action in ["create","update", "destroy"]:
-            permission_classes = [IsAuthenticated]
+            permission_classes = [IsCustomAuthenticated]
         return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
@@ -189,6 +189,15 @@ class CommentViewSet(CustomViewSet):
         else:
             return ResponseWrapper(error_msg="failed to delete",
                                    error_code=400)
+
+    def retrieve(self, request, pk, *args, **kwargs):
+        qs = Comment.objects.filter(id=pk).last()
+        if not qs:
+            return ResponseWrapper(error_msg='Comment not Found',
+                                   error_code=400, status=400)
+        serializer = self.serializer_class(instance=qs)
+        return ResponseWrapper(data=serializer.data, msg='Success',
+                               status=200)
 
 class CommentReplyViewSet(CustomViewSet):
     queryset = CommentReply.objects.all()

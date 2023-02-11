@@ -8,6 +8,20 @@ from django.db.models import Q
 
 User = get_user_model()
 
+class IsCustomAuthenticated(BasePermission):
+    """
+    Allows access only to authenticated users.
+    """
+    message = 'User Is Not Login'
+
+    def has_permission(self, request, view):
+        if bool(request.user and request.user.is_authenticated):
+            return True
+        else:
+            return False
+        # return bool(request.user and request.user.is_authenticated)
+
+
 
 class IsSuperAdmin(BasePermission):
 

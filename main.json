@@ -1,0 +1,1 @@
+[{"model": "blog.post", "pk": 1, "fields": {"title": "Lorem Ipsum is simply dummy textoyota", "slug": "lorem-ipsum-is-simply-dummy-textoyota", "featured_image": "post/71ec4911-2c32-44d7-b217-58632cc9be7f.jpg", "description": "string", "created_at": "2023-02-11T07:08:11.797Z", "created_by": 1, "updated_at": "2023-02-11T07:08:11.822Z"}}]
