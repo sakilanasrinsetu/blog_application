@@ -18,8 +18,10 @@ from django.contrib.auth import get_user_model, login
 import random
 from accounts.serializers import *
 from utils.response_wrapper import ResponseWrapper
+from utils.permissions import IsSuperAdmin, IsEmployeeOrSuperAdmin
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth.hashers import make_password
+
 
 
 # Create your views here.
@@ -33,6 +35,8 @@ class UserAccountViewSet(CustomViewSet):
         permission_classes = []
         if self.action in ["user_details"]:
             permission_classes = [IsAuthenticated]
+        elif self.action in ["employee_create", 'user_list', 'destroy']:
+            permission_classes = [IsEmployeeOrSuperAdmin]
         # else:
         #     # permissions.DjangoObjectPermissions.has_permission()
         #     permission_classes = [permissions.AllowAny]
@@ -44,6 +48,12 @@ class UserAccountViewSet(CustomViewSet):
 
         elif self.action == 'login':
             self.serializer_class = AuthTokenSerializer
+
+        elif self.action == 'employee_create':
+            self.serializer_class = EmployeeCreateSerializer
+
+        elif self.action == 'profile_update':
+            self.serializer_class = ProfileUpdateSerializer
 
         else:
             self.serializer_class = AuthTokenSerializer
@@ -80,6 +90,7 @@ class UserAccountViewSet(CustomViewSet):
                 **request.data
             )
             _, token = AuthToken.objects.create(user)
+
         except Exception as err:
             # logger.exception(msg="error while account cration")
             return ResponseWrapper(
@@ -125,10 +136,54 @@ class UserAccountViewSet(CustomViewSet):
         return ResponseWrapper(data=serializer.data, status=200)
 
     def user_list(self, request, *args, **kwargs):
-        qs = UserAccount.objects.all()
-        if not qs:
-            return ResponseWrapper(error_msg='This is Not Your Account',
-                                   error_code=400)
-
+        # qs = UserAccount.objects.all()
+        qs = self.filter_queryset(self.get_queryset())
         serializer = UserProfileDetailSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, status=200)
+
+    def employee_create(self, request, *args, **kwargs):
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return ResponseWrapper(error_msg='User Id is Not Given',
+                                   error_code=400, status=400)
+        qs = UserAccount.objects.filter(pk = user_id).last()
+        if not qs:
+            return ResponseWrapper(error_msg='User is Not Found',
+                                   error_code=400, status=400)
+
+        if qs.is_employee == True:
+            serializer = UserProfileDetailSerializer(instance=qs)
+            return ResponseWrapper(data=serializer.data,
+                                   msg='User is Already Employee',
+                                   status=200)
+        qs.is_employee = True
+        qs.save()
+        serializer = UserProfileDetailSerializer(instance=qs)
+        return ResponseWrapper(data=serializer.data, status=200,
+                               msg='Successfully Create')
+
+    def profile_update(self,request, pk, *args, **kwargs):
+        qs = UserAccount.objects.filter(id = pk).last()
+        if not qs:
+            return ResponseWrapper(error_msg='User is Not Found',
+                                   error_code=400, status=400)
+
+        email = request.data.get('email')
+        email_exists = UserAccount.objects.filter(email=email).exclude(pk= pk).last()
+        if email_exists:
+            return ResponseWrapper(error_msg='User Email is Found',
+                                   error_code=400, status=400)
+
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data, partial=True)
+        if serializer.is_valid():
+            qs = serializer.update(instance=self.get_object(
+            ), validated_data=serializer.validated_data)
+
+            full_name = str(qs.first_name) +' ' + str(qs.last_name)
+            qs.full_name = full_name
+            qs.save()
+            serializer = UserProfileDetailSerializer(instance=qs)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)

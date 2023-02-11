@@ -19,6 +19,17 @@ class RegisterSerializer(serializers.ModelSerializer):
             'password',
             ]
 
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserAccount
+        fields = [
+            'first_name',
+            'last_name',
+            'email'
+            ]
+
 class UserProfileDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -34,3 +45,10 @@ class UserProfileDetailSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at'
             ]
+
+
+class EmployeeCreateSerializer(serializers.Serializer):
+    user_id = serializers.PrimaryKeyRelatedField(
+        read_only=False, queryset=UserAccount.objects.all()
+    )
+

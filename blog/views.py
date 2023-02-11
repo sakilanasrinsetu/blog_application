@@ -30,7 +30,7 @@ class PostViewSet(CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ["create","update"]:
+        if self.action in ["create","update", "destroy"]:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
@@ -89,7 +89,23 @@ class PostViewSet(CustomViewSet):
         if not qs:
             return ResponseWrapper(error_msg='Post not Found', error_code=400, status=400)
         serializer = self.serializer_class(instance=qs)
-        return ResponseWrapper(data=serializer.data, msg='Success', status=200)
+        return ResponseWrapper(data=serializer.data, msg='Success',
+                               status=200)
+
+    def destroy(self, request, **kwargs):
+        qs = self.queryset.filter(**kwargs).first()
+        if not qs:
+            return ResponseWrapper(error_msg='Post is Not Found',
+                                   error_code=400, status=400)
+        if not qs.created_by.username == request.user:
+            return ResponseWrapper(error_msg='This is not Your Post',
+                                   error_code=400, status=400)
+        if qs:
+            qs.delete()
+            return ResponseWrapper(status=200, msg='deleted')
+        else:
+            return ResponseWrapper(error_msg="failed to delete",
+                                   error_code=400)
 
 
 class CommentViewSet(CustomViewSet):
@@ -99,7 +115,7 @@ class CommentViewSet(CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ["create", "update"]:
+        if self.action in ["create", "update", "destroy"]:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
@@ -159,6 +175,20 @@ class CommentViewSet(CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
+    def destroy(self, request, **kwargs):
+        qs = self.queryset.filter(**kwargs).first()
+        if not qs:
+            return ResponseWrapper(error_msg='Comment is Not Found',
+                                   error_code=400, status=400)
+        if not qs.commented_by.username == request.user:
+            return ResponseWrapper(error_msg='This is not Your Comment',
+                                   error_code=400, status=400)
+        if qs:
+            qs.delete()
+            return ResponseWrapper(status=200, msg='deleted')
+        else:
+            return ResponseWrapper(error_msg="failed to delete",
+                                   error_code=400)
 
 class CommentReplyViewSet(CustomViewSet):
     queryset = CommentReply.objects.all()
@@ -167,7 +197,7 @@ class CommentReplyViewSet(CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ["create", "update"]:
+        if self.action in ["create", "update", "destroy"]:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
@@ -227,4 +257,17 @@ class CommentReplyViewSet(CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-
+    def destroy(self, request, **kwargs):
+        qs = self.queryset.filter(**kwargs).first()
+        if not qs:
+            return ResponseWrapper(error_msg='Reply is Not Found',
+                                   error_code=400, status=400)
+        if not qs.replied_by.username == request.user:
+            return ResponseWrapper(error_msg='This is not Your Reply',
+                                   error_code=400, status=400)
+        if qs:
+            qs.delete()
+            return ResponseWrapper(status=200, msg='deleted')
+        else:
+            return ResponseWrapper(error_msg="failed to delete",
+                                   error_code=400)

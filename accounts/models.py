@@ -19,7 +19,7 @@ class UserAccount(AbstractUser):
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150, null=True, blank=True)
     full_name = models.CharField(max_length=500, null=True, blank=True)
-    email = models.EmailField(max_length=35, unique=True)
+    email = models.EmailField(max_length=35)
     is_employee = models.BooleanField(default=False) # Is Staff or Not
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
