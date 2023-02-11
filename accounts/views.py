@@ -23,7 +23,6 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth.hashers import make_password
 
 
-
 # Create your views here.
 
 class UserAccountViewSet(CustomViewSet):
@@ -160,7 +159,7 @@ class UserAccountViewSet(CustomViewSet):
         if qs.is_employee == True:
             serializer = UserProfileDetailSerializer(instance=qs)
             return ResponseWrapper(data=serializer.data,
-                                   msg='User is Already Employee',
+                                   msg='User is Already an Employee',
                                    status=200)
         qs.is_employee = True
         qs.save()

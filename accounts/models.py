@@ -27,6 +27,9 @@ class UserAccount(AbstractUser):
     def __str__(self):
         return self.username
 
+    class Meta:
+        ordering = ['created_at']
+
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = ["email"]
     objects = UserManager()

@@ -49,8 +49,12 @@ class IsEmployeeOrSuperAdmin(permissions.BasePermission):
         if not bool(request.user and request.user.is_authenticated):
             return False
 
-        qs = UserAccount.objects.filter(
-            Q(username=request.user, is_employee=True) or Q(is_superuser=True))
+        if request.user.is_superuser:
+            qs = UserAccount.objects.filter(Q(is_superuser=True)
+                                            or Q(username=request.user, is_employee=True))
+        else:
+            return False
+
         if not qs:
             return False
         else:
@@ -62,8 +66,11 @@ class IsEmployeeOrSuperAdmin(permissions.BasePermission):
         if not bool(request.user and request.user.is_authenticated):
             return False
 
-        qs = UserAccount.objects.filter(
-            Q(username=request.user, is_employee=True) or Q(is_superuser=True))
+        if request.user.is_superuser:
+            qs = UserAccount.objects.filter(Q(is_superuser=True)
+                                            or Q(username=request.user, is_employee=True))
+        else:
+            return False
         if qs:
             return True
         else:

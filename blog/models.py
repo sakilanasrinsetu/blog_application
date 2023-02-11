@@ -5,10 +5,9 @@ from django.utils.text import slugify
 # Create your models here.
 
 
-
 class Post(models.Model):
     title = models.CharField(max_length=255, verbose_name="title")
-    slug = models.SlugField(blank=True, unique=True)
+    slug = models.SlugField(blank=True, unique=True, max_length = 550)
     featured_image = models.FileField(
         blank=True, null=True, upload_to='post'
     )
@@ -21,6 +20,9 @@ class Post(models.Model):
     updated_at = models.DateTimeField(
         auto_now=True, verbose_name='updated at'
     )
+
+    class Meta:
+        ordering = ['created_at']
 
     def __str__(self):
         return self.title
@@ -53,7 +55,7 @@ class Comment(models.Model):
     )
 
     class Meta:
-        ordering = ['-updated_at']
+        ordering = ['created_at']
 
     def __str__(self):
         return str(self.comment) if len(str(self.comment)) <= 10 else str(self.comment)[:10] + " ..."
@@ -80,8 +82,7 @@ class CommentReply(models.Model):
     )
 
     class Meta:
-        ordering = ['-updated_at']
-
+        ordering = ['created_at']
 
     def __str__(self):
         return str(self.reply) if len(str(self.reply)) <= 10 else str(self.reply)[:10] + " ..."

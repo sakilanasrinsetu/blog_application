@@ -37,7 +37,7 @@ class PostViewSet(CustomViewSet):
             qs = serializer.save()
             qs.created_by = request.user
             qs.save()
-            serializer = self.serializer_class(qs)
+            serializer = PostDetailSerializer(instance=qs)
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
@@ -46,12 +46,16 @@ class PostViewSet(CustomViewSet):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data, partial=True)
 
-        post_qs = self.queryset.filter(**kwargs)
-        if not post_qs.exists():
+        post_qs = self.queryset.filter(pk = pk).last()
+        if not post_qs:
             return ResponseWrapper(error_code=400,
                                    error_msg='Post Not Found', status=400)
 
         if serializer.is_valid():
+            if not post_qs.created_by.username == request.user.username:
+                return ResponseWrapper(error_msg='This is not Your Post',
+                                       error_code=400, status=400)
+
             title = serializer.validated_data.get("title")
 
             if self.get_queryset().filter(title__iexact=title).exclude(id=pk).exists():
@@ -69,19 +73,28 @@ class PostViewSet(CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def retrieve(self, request, pk, *args, **kwargs):
-        qs = Post.objects.filter(Q(slug= pk) or Q(id = pk)).last()
-        if not qs:
-            return ResponseWrapper(error_msg='Post not Found', error_code=400, status=400)
-        serializer = self.serializer_class(instance=qs)
-        return ResponseWrapper(data=serializer.data, msg='Success',
-                               status=200)
+        if pk.isdigit():
+            qs = Post.objects.filter(pk = pk).last()
+            if not qs:
+                return ResponseWrapper(error_msg="Post not found", error_code=404, status=404)
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='Success',
+                                   status=200)
+        else:
+            slug = pk
+            qs = Post.objects.filter(slug=slug).last()
+            if not qs:
+                return ResponseWrapper(error_msg="Post not found", error_code=404, status=404)
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='Success',
+                                   status=200)
 
     def destroy(self, request, **kwargs):
         qs = self.queryset.filter(**kwargs).first()
         if not qs:
             return ResponseWrapper(error_msg='Post is Not Found',
                                    error_code=400, status=400)
-        if not qs.created_by.username == request.user:
+        if not qs.created_by.username == request.user.username:
             return ResponseWrapper(error_msg='This is not Your Post',
                                    error_code=400, status=400)
         if qs:
@@ -164,7 +177,7 @@ class CommentViewSet(CustomViewSet):
         if not qs:
             return ResponseWrapper(error_msg='Comment is Not Found',
                                    error_code=400, status=400)
-        if not qs.commented_by.username == request.user:
+        if not qs.commented_by.username == request.user.username:
             return ResponseWrapper(error_msg='This is not Your Comment',
                                    error_code=400, status=400)
         if qs:
@@ -233,7 +246,7 @@ class CommentReplyViewSet(CustomViewSet):
                                    error_msg='Comment Not Found', status=400)
 
         if serializer.is_valid():
-            comment_qs = Comment.objects.filter(commented_by__username = request.user, id = pk).last()
+            comment_qs = CommentReply.objects.filter(replied_by__username = request.user.username, id = pk).last()
 
             if not comment_qs:
                 return ResponseWrapper(
@@ -244,7 +257,7 @@ class CommentReplyViewSet(CustomViewSet):
 
             qs = serializer.update(instance=self.get_object(
             ), validated_data=serializer.validated_data)
-            serializer = CommentDetailsSerializer(qs)
+            serializer = CommentReplyDetailsSerializer(qs)
             return ResponseWrapper(data=serializer.data,
                                    msg='Update Successfully', status=200)
         else:
@@ -255,7 +268,7 @@ class CommentReplyViewSet(CustomViewSet):
         if not qs:
             return ResponseWrapper(error_msg='Reply is Not Found',
                                    error_code=400, status=400)
-        if not qs.replied_by.username == request.user:
+        if not qs.replied_by.username == request.user.username:
             return ResponseWrapper(error_msg='This is not Your Reply',
                                    error_code=400, status=400)
         if qs:
