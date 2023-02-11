@@ -9,6 +9,7 @@
     - Create a database and add configuration to the `.env` file from `.env.example`
     - Run django migrate commands
     - Run the project with `runserver` command
+    - Run the test with `test` command
 
 # Project API Url
 
