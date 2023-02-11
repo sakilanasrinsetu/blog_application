@@ -31,7 +31,7 @@
 
 # For Dump Project Data 
 
-   `python manage.py dumpdata > blog.json blog`
+    `python manage.py dumpdata > blog.json blog`
 
 
 # Superuser Credential  
